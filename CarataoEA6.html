@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Water Billing Statement System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep-teal:#0B3D42;
+    --water-blue:#0E5D6E;
+    --aqua:#2FA6A0;
+    --paper:#FBF8F0;
+    --ink:#16262A;
+    --ink-soft:#4C6266;
+    --line:#D8CFB8;
+    --danger:#B5432D;
+    --stamp:#C7522A;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(47,166,160,0.16), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(14,93,110,0.20), transparent 50%),
+      var(--deep-teal);
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    padding: 40px 20px 60px;
+  }
+
+  .wrap{
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  header.masthead{
+    text-align:center;
+    margin-bottom: 36px;
+    color:#EAF4F1;
+  }
+
+  header.masthead .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.28em;
+    font-size:12px;
+    text-transform:uppercase;
+    color:#9FD6CC;
+    margin-bottom:10px;
+  }
+
+  header.masthead h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: clamp(32px, 5vw, 52px);
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+
+  header.masthead p{
+    margin:0;
+    color:#BFE0DA;
+    font-size:15px;
+    max-width:520px;
+    margin:0 auto;
+  }
+
+  .board{
+    display:grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 28px;
+    align-items:start;
+  }
+
+  @media (max-width: 860px){
+    .board{ grid-template-columns: 1fr; }
+  }
+
+  .panel{
+    background: var(--paper);
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  }
+
+  .form-panel{
+    padding: 30px 30px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .form-panel::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:6px;
+    background: repeating-linear-gradient(90deg, var(--aqua) 0 14px, transparent 14px 24px);
+  }
+
+  .form-panel h2{
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    margin:10px 0 22px;
+    color:var(--water-blue);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .form-panel h2::before{
+    content:"";
+    width:8px; height:8px;
+    background:var(--stamp);
+    border-radius:50%;
+    display:inline-block;
+  }
+
+  .field{
+    margin-bottom: 18px;
+  }
+
+  .field label{
+    display:block;
+    font-size:12px;
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+
+  .field input,
+  .field select{
+    width:100%;
+    padding:12px 14px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    font-size:15px;
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .field input:focus,
+  .field select:focus{
+    outline:none;
+    border-color: var(--aqua);
+    box-shadow: 0 0 0 3px rgba(47,166,160,0.18);
+  }
+
+  .error-msg{
+    color: var(--danger);
+    font-size:12.5px;
+    margin-top:6px;
+    font-family:'IBM Plex Mono', monospace;
+    display:none;
+  }
+
+  .error-msg.show{ display:block; }
+
+  .field.has-error input,
+  .field.has-error select{
+    border-color: var(--danger);
+  }
+
+  .rate-table{
+    margin: 4px 0 22px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+
+  .rate-table table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+  }
+
+  .rate-table th{
+    background: rgba(14,93,110,0.08);
+    color:var(--water-blue);
+    text-align:left;
+    padding:8px 12px;
+    font-weight:600;
+    letter-spacing:.03em;
+  }
+
+  .rate-table td{
+    padding:7px 12px;
+    border-top:1px solid var(--line);
+    color:var(--ink-soft);
+  }
+
+  button.generate{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:9px;
+    background: linear-gradient(135deg, var(--water-blue), var(--deep-teal));
+    color:#fff;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:.02em;
+    cursor:pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+    box-shadow: 0 10px 20px rgba(11,61,66,0.35);
+  }
+
+  button.generate:hover{ transform: translateY(-1px); }
+  button.generate:active{ transform: translateY(0); box-shadow:none; }
+
+  .counter-strip{
+    margin-top:18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 16px;
+    background: rgba(14,93,110,0.06);
+    border:1px dashed var(--line);
+    border-radius:9px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  .counter-strip .label{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+  }
+
+  .counter-strip .count{
+    font-size:22px;
+    font-weight:600;
+    color:var(--stamp);
+  }
+
+  /* --- Statement / receipt panel --- */
+  .statement-panel{
+    padding: 30px 0;
+    position:relative;
+    background:
+      linear-gradient(var(--paper), var(--paper)) padding-box;
+  }
+
+  .statement-panel .inner{
+    padding: 0 30px;
+  }
+
+  .statement-panel::before,
+  .statement-panel::after{
+    content:"";
+    position:absolute;
+    width:26px; height:26px;
+    background: var(--deep-teal);
+    border-radius:50%;
+    left:-13px;
+  }
+  .statement-panel::before{ top:-13px; }
+  .statement-panel::after{ bottom:-13px; }
+
+  .stub-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:18px;
+  }
+
+  .stub-head h2{
+    font-family:'Fraunces', serif;
+    font-size:22px;
+    margin:0 0 4px;
+    color:var(--water-blue);
+  }
+
+  .stub-head .sub{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    letter-spacing:.04em;
+  }
+
+  .stub-head .stamp{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    border:2px solid var(--stamp);
+    color:var(--stamp);
+    padding:5px 10px;
+    border-radius:6px;
+    transform: rotate(4deg);
+    letter-spacing:.05em;
+    white-space:nowrap;
+  }
+
+  #statementOutput .placeholder{
+    text-align:center;
+    color:var(--ink-soft);
+    padding: 50px 10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    line-height:1.7;
+  }
+
+  .bill-row{
+    display:flex;
+    justify-content:space-between;
+    padding:9px 0;
+    border-bottom: 1px dotted var(--line);
+    font-size:14.5px;
+  }
+
+  .bill-row .k{ color:var(--ink-soft); }
+  .bill-row .v{ font-family:'IBM Plex Mono', monospace; font-weight:500; }
+
+  .bill-row.discount .v{ color: var(--aqua); }
+
+  .bill-total{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:2px solid var(--ink);
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+
+  .bill-total .k{
+    font-family:'Fraunces', serif;
+    font-size:16px;
+    color:var(--water-blue);
+  }
+
+  .bill-total .v{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:26px;
+    font-weight:600;
+    color:var(--stamp);
+  }
+
+  .tier-breakdown{
+    margin-top:16px;
+    padding:14px 16px;
+    background: rgba(14,93,110,0.05);
+    border-radius:8px;
+  }
+
+  .tier-breakdown .head{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+
+  .tier-line{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:3px 0;
+    color:var(--ink-soft);
+  }
+
+  .save-note{
+    margin-top:18px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    text-align:center;
+    padding:8px;
+    border-radius:6px;
+  }
+
+  .save-note.ok{ color:#1a7a5e; background:rgba(26,122,94,0.08); }
+  .save-note.err{ color:var(--danger); background:rgba(181,67,45,0.08); }
+  .save-note.pending{ color:var(--ink-soft); background:rgba(14,93,110,0.06); }
+
+  footer.foot{
+    text-align:center;
+    margin-top: 34px;
+    color:#8FC5BC;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.04em;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">Municipal Water District · Billing Terminal</div>
+    <h1>Water Billing Statement System</h1>
+    <p>Enter a customer's reading to compute the bill, apply the correct discount, and log the transaction automatically.</p>
+  </header>
+
+  <div class="board">
+
+    <!-- FORM PANEL -->
+    <section class="panel form-panel">
+      <h2>New Billing Entry</h2>
+
+      <div class="field" id="nameField">
+        <label for="customerName">Customer Name</label>
+        <input type="text" id="customerName" placeholder="e.g. Juan Dela">
+        <div class="error-msg" id="nameError">Please enter the customer's name.</div>
+      </div>
+
+      <div class="field" id="consumptionField">
+        <label for="consumption">Water Consumption (cubic meters)</label>
+        <input type="number" id="consumption" placeholder="e.g. 32" min="0" step="1">
+        <div class="error-msg" id="consumptionError">Enter a valid consumption greater than 0.</div>
+      </div>
+
+      <div class="field" id="typeField">
+        <label for="customerType">Customer Type</label>
+        <select id="customerType">
+          <option value="Regular">Regular — No Discount</option>
+          <option value="Senior Citizen">Senior Citizen — 25% Discount</option>
+          <option value="Solo Parent">Solo Parent — 15% Discount</option>
+        </select>
+      </div>
+
+      <div class="rate-table">
+        <table>
+          <thead>
+            <tr><th>Consumption (m³)</th><th>Rate / m³</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1 – 20</td><td>₱25.00</td></tr>
+            <tr><td>21 – 40</td><td>₱35.00</td></tr>
+            <tr><td>41 – 60</td><td>₱45.00</td></tr>
+            <tr><td>Above 60</td><td>₱60.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button class="generate" id="generateBtn">Generate Bill</button>
+
+      <div class="counter-strip">
+        <span class="label">Transactions Processed</span>
+        <span class="count" id="txnCount">0</span>
+      </div>
+    </section>
+
+    <!-- STATEMENT PANEL -->
+    <section class="panel statement-panel">
+      <div class="inner">
+        <div class="stub-head">
+          <div>
+            <h2>Billing Statement</h2>
+            <div class="sub">Official Water Consumption Bill</div>
+          </div>
+        </div>
+
+        <div id="statementOutput">
+          <div class="placeholder">
+            No bill generated yet.<br>
+            Fill in the customer details and press<br>"Generate Bill" to see the statement here.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="foot">Every generated statement is logged to Google Sheets via Google Apps Script.</footer>
+</div>
+
+<script>
+  /* =========================================================
+     CONFIG — paste your deployed Google Apps Script Web App URL here
+     ========================================================= */
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxSYaZA_pJG3fC4VxLoQ65mi9oXsKAkzsb2WFdztc56agB6AmD_TaIjwVCKgyMCS5MLRQ/exec";
+
+  /* Rate tiers (progressive / bracketed pricing) */
+  const RATE_TIERS = [
+    { min: 1,  max: 20,       rate: 25.00 },
+    { min: 21, max: 40,       rate: 35.00 },
+    { min: 41, max: 60,       rate: 45.00 },
+    { min: 61, max: Infinity, rate: 60.00 }
+  ];
+
+  let transactionCount = 0;
+
+  const nameInput        = document.getElementById('customerName');
+  const consumptionInput = document.getElementById('consumption');
+  const typeSelect       = document.getElementById('customerType');
+  const generateBtn      = document.getElementById('generateBtn');
+  const statementOutput  = document.getElementById('statementOutput');
+  const txnCountEl       = document.getElementById('txnCount');
+
+  function clearErrors() {
+    document.getElementById('nameField').classList.remove('has-error');
+    document.getElementById('consumptionField').classList.remove('has-error');
+    document.getElementById('nameError').classList.remove('show');
+    document.getElementById('consumptionError').classList.remove('show');
+  }
+
+  function validateInputs(name, consumption) {
+    let valid = true;
+    clearErrors();
+
+    if (name === "") {
+      document.getElementById('nameField').classList.add('has-error');
+      document.getElementById('nameError').classList.add('show');
+      valid = false;
+    }
+
+    if (isNaN(consumption) || consumption <= 0) {
+      document.getElementById('consumptionField').classList.add('has-error');
+      document.getElementById('consumptionError').classList.add('show');
+      valid = false;
+    }
+
+    return valid;
+  }
+
+
+function computeTieredAmount(consumption) {
+  let rate = 0;
+
+  if (consumption >= 1 && consumption <= 20) {
+    rate = 25;
+  } else if (consumption <= 40) {
+    rate = 35;
+  } else if (consumption <= 60) {
+    rate = 45;
+  } else {
+    rate = 60;
+  }
+
+  const totalAmount = consumption * rate;
+
+  const breakdown = [{
+    range:
+      consumption <= 20 ? "1–20" :
+      consumption <= 40 ? "21–40" :
+      consumption <= 60 ? "41–60" :
+      "Above 60",
+    cubicMeters: consumption,
+    rate: rate,
+    cost: totalAmount
+  }];
+
+  return { totalAmount, breakdown };
+}
+
+  /* Determines discount rate using a switch statement */
+  function getDiscountRate(customerType) {
+    let rate = 0;
+    switch (customerType) {
+      case "Senior Citizen":
+        rate = 0.25;
+        break;
+      case "Solo Parent":
+        rate = 0.15;
+        break;
+      case "Regular":
+      default:
+        rate = 0;
+        break;
+    }
+    return rate;
+  }
+
+  function formatCurrency(value) {
+    return "₱" + value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function renderStatement(data) {
+    const {
+      name, consumption, customerType, totalAmount,
+      discountRate, discountAmount, netAmount, breakdown, timestamp
+    } = data;
+
+    let breakdownHtml = "";
+    breakdown.forEach(tier => {
+      breakdownHtml += `
+        <div class="tier-line">
+          <span>${tier.range} m³ · ${tier.cubicMeters} m³ @ ${formatCurrency(tier.rate)}</span>
+          <span>${formatCurrency(tier.cost)}</span>
+        </div>`;
+    });
+
+    let discountRowHtml = "";
+    if (discountRate > 0) {
+      discountRowHtml = `
+        <div class="bill-row discount">
+          <span class="k">${customerType} Discount (${Math.round(discountRate * 100)}%)</span>
+          <span class="v">− ${formatCurrency(discountAmount)}</span>
+        </div>`;
+    }
+
+    statementOutput.innerHTML = `
+      <div class="bill-row"><span class="k">Customer Name</span><span class="v">${name}</span></div>
+      <div class="bill-row"><span class="k">Customer Type</span><span class="v">${customerType}</span></div>
+      <div class="bill-row"><span class="k">Water Consumption</span><span class="v">${consumption} m³</span></div>
+      <div class="bill-row"><span class="k">Date Issued</span><span class="v">${timestamp}</span></div>
+
+      <div class="tier-breakdown">
+        <div class="head">Rate Breakdown</div>
+        ${breakdownHtml}
+      </div>
+
+      <div class="bill-row" style="margin-top:14px;">
+        <span class="k">Gross Amount</span><span class="v">${formatCurrency(totalAmount)}</span>
+      </div>
+      ${discountRowHtml}
+
+      <div class="bill-total">
+        <span class="k">Amount Due</span>
+        <span class="v">${formatCurrency(netAmount)}</span>
+      </div>
+
+      <div class="save-note pending" id="saveNote">Saving to Google Sheets…</div>
+    `;
+  }
+
+  function sendToGoogleSheet(payload) {
+
+    const noteEl = document.getElementById('saveNote');
+
+    fetch(SCRIPT_URL,{
+        method:"POST",
+        mode:"no-cors",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify(payload)
+    })
+    .then(()=>{
+
+        noteEl.textContent =
+        "Transaction saved to Google Sheets ✓";
+
+        noteEl.classList.remove('pending');
+        noteEl.classList.add('ok');
+
+    })
+    .catch(error=>{
+
+        console.error(error);
+
+        noteEl.textContent =
+        "Could not reach Google Sheets";
+
+        noteEl.classList.remove('pending');
+        noteEl.classList.add('err');
+
+    });
+  }
+
+  function generateBill() {
+    const name = nameInput.value.trim();
+    const consumption = parseFloat(consumptionInput.value);
+    const customerType = typeSelect.value;
+
+    if (!validateInputs(name, consumption)) {
+      return;
+    }
+
+    const { totalAmount, breakdown } = computeTieredAmount(consumption);
+    const discountRate = getDiscountRate(customerType);
+    const discountAmount = totalAmount * discountRate;
+    const netAmount = totalAmount - discountAmount;
+
+    const now = new Date();
+    const timestamp = now.toLocaleString('en-PH');
+
+    const data = {
+      name, consumption, customerType,
+      totalAmount, discountRate, discountAmount, netAmount,
+      breakdown, timestamp
+    };
+
+    renderStatement(data);
+
+    transactionCount++;
+    txnCountEl.textContent = transactionCount;
+    
+
+    sendToGoogleSheet({
+      customerName: name,
+      waterConsumption: consumption,
+      customerType: customerType,
+      grossAmount: totalAmount.toFixed(2),
+      discountAmount: discountAmount.toFixed(2),
+      netAmount: netAmount.toFixed(2),
+      timestamp: timestamp
+    });
+  }
+
+  generateBtn.addEventListener('click', generateBill);
+
+  /* Allow pressing Enter inside the fields to generate the bill */
+  [nameInput, consumptionInput].forEach(el => {
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') generateBill();
+    });
+  });
+</script>
+
+</body>
+</html>
